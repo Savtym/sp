@@ -7,6 +7,8 @@ bool element::ReadFromFile(string& fileName) {
 	int bufMemory = 0;
 	int bufMemoryDyn;
 	bool flIF = true;
+	int flMemoryNum = 1;
+	int flMemoryNumCode = 1;
 	string bufStr = "";
 	if (f.is_open()) {
 		number = 0;
@@ -96,6 +98,14 @@ bool element::ReadFromFile(string& fileName) {
 			else {
 				memory.push_back(bufMemory);
 				bufMemory += bufMemoryDyn;
+			}
+			if (flMemoryNum == space.size()) {
+				spaceNum.push_back(memory[number]);
+				++flMemoryNum;
+			}
+			if (flMemoryNumCode == spaceCode.size()) {
+				spaceNum.push_back(memory[number]);
+				++flMemoryNumCode;
 			}
 			strokaBuf.clear();
 			++number;
@@ -346,7 +356,6 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				(i < size - 2) && ((listStroka[i + 1] == 10) || (listString[i + 1] == "EQU")) && \
 				(Active_seg)) {
 				space.push_back(listString[i]);
-				spaceNum.push_back(memory[listNumber - 1]);
 			}
 			else if ((i < size - 2) && (listString[i + 1] == "EQU")) {
 				//spaceNum.push_back(-3);
