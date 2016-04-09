@@ -16,8 +16,8 @@ public:
 			//equ (=<memory>)
 			if (list.memory[i] == -1) {
 				if (list.equConst[equ] != -1) {
-					cout << " =" << setfill('0') << setw(4) << hex << list.equConst[equ];
-					fileRecord << " =" << setfill('0') << setw(4) << hex << list.equConst[equ];
+					cout << " =" << setfill('0') << setw(4) << hex << list.equConst[equ] << "\t";
+					fileRecord << " =" << setfill('0') << setw(4) << hex << list.equConst[equ] << "\t";
 				}
 				else
 					printf(" = ");
@@ -63,21 +63,15 @@ public:
 					break;
 				}
 				//for segment reigister ":"
-				else if ((k < sizeList - 1) && ((list.listInfo[i][k] == 4) && (list.listInfo[i][k + 1] == 3)) || \
-					(list.listInfo[i][k] == 8) && (strInVec(list.list[i][k], list.spaceCode)) && ((list.listInfo[i][k + 1] != 10))) {
+				else if ((k < sizeList - 1) && ((list.listInfo[i][k] == 4) && (list.listInfo[i][k + 1] == 3))) {
 					iCur = 0;
 					cout << " " << hex << uppercase << list.tableCommand[i][0] << ":";
 					fileRecord << " " << hex << uppercase << list.tableCommand[i][0] << ":";
 					++iCur;
 				}
-				//logical segment commands and register
-				else if ((list.listInfo[i][k] == 8) && (k < sizeList - 1) && (list.listInfo[i][k+1] != 10)) {
+				//logical segment commands and register address (mem)
+				if ((list.listInfo[i][k] == 8) && (k < sizeList - 1) && (list.listInfo[i][k+1] != 10)) {
 					sizeCom = list.tableCommand[i].size();
-					for (; iCur < sizeCom; ++iCur) {
-						cout << " " << hex << uppercase << list.tableCommand[i][iCur];
-						fileRecord << " " << hex << uppercase << list.tableCommand[i][iCur];
-					}
-					iCur = 0;
 					sizeCom = list.spaceNum.size();
 					for (int j = 0; j < sizeCom; ++j) {
 						if ((j < list.space.size()) && (list.list[i][k] == list.space[j])) {
@@ -91,6 +85,23 @@ public:
 							break;
 						}
 					}
+				}
+				//other commands logical segment
+				else if (list.listInfo[i][k] == 4) {
+					sizeCom = list.tableCommand[i].size();
+					for (int l = k; l < sizeList && iCur == 0; ++l) {
+						if (strInVec(list.list[i][l], list.spaceCode)) {
+							cout << " " << hex << uppercase << list.tableCommand[i][0] << ":";
+							fileRecord << " " << hex << uppercase << list.tableCommand[i][0] << ":";
+							++iCur;
+							break;
+						}
+					}
+					for (; iCur < sizeCom; ++iCur) {
+						cout << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
+						fileRecord << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
+					}
+					iCur = 0;
 				}
 			}
 			for (int j = 0; j < sizeStr; ++j) {

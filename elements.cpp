@@ -301,32 +301,62 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 1;
 			}
 			else if (listString[i] == "DEC") {
-				if (regex_match(listString[i + 1], typeRegisters))
+				if (regex_match(listString[i + 1], typeRegisters)) {
+					tableCommand[number].push_back(254);
+					tableCommand[number].push_back(memR32(typeRegistersString(listString[i + 1]), "rg", 8) + 8);
 					return 2;
+				}
+				tableCommand[number].push_back(memR32(listString[i + 1], "rg", 2) + 8);
 				return 1;
 			}
 			else if (listString[i] == "INC") {
+				int bufMemory = 0;
+				int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
 				if (segmentRegisterInCommands(listString, number)) {
-					tableCommand[number].push_back(254);
-					tableCommand[number].push_back(132);
+					if (sizeMemoryBuf == 1)
+						tableCommand[number].push_back(254);
+					else if (sizeMemoryBuf == 2) {
+						tableCommand[number].push_back(102);
+						tableCommand[number].push_back(255);
+						++bufMemory;
+					}
+					else if (sizeMemoryBuf == 4)
+						tableCommand[number].push_back(255);
+					tableCommand[number].push_back(memR32("ESP", listString[i + 7], 4));
 					tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
 				}
 				else {
-					tableCommand[number].push_back(254);
-					tableCommand[number].push_back(132);
+					if (sizeMemoryBuf == 1)
+						tableCommand[number].push_back(254);
+					else if (sizeMemoryBuf == 2) {
+						tableCommand[number].push_back(102);
+						tableCommand[number].push_back(255);
+						++bufMemory;
+					}
+					else if (sizeMemoryBuf == 4)
+						tableCommand[number].push_back(255);
+					tableCommand[number].push_back(memR32("ESP", listString[i + 5], 4));
 					tableCommand[number].push_back(memR32(listString[i+3], listString[i+5], stoi(listString[i+7])));
 				}
-
-				return segmentSizeMem(listString, listStroka, i + 1);
+				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "AND") {
+				if (regex_match(listString[i+1], typeRegisters))
+					tableCommand[number].push_back(34);
+				else
+					tableCommand[number].push_back(35);
+				tableCommand[number].push_back(memR32(typeRegistersString(listString[i+3]), typeRegistersString(listString[i+1]), 8));
 				return 2;
 			}
 			else if (listString[i] == "OR") {
 				segmentRegisterInCommands(listString, number);
 				int bufReg = 0;
-				if (regex_match(listString[i + 1], typeRegisters))
+				if (regex_match(listString[i + 1], typeRegisters)) {
 					++bufReg;
+				}
+				tableCommand[number].push_back(11);
+				tableCommand[number].push_back(memR32("ESP", listString[i + 1], 4));
+				tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
 				return (bufReg + segmentSizeMem(listString, listStroka, i + 3));
 			}
 			else if (listString[i] == "CMP") {
@@ -368,6 +398,14 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			else if (((spaceCode.size() == 0) || (!strInVec(listString[i], spaceCode))) && \
 				(i < size - 1) && (!Active_seg) && (listStroka[i + 1] == 10)) {
 				spaceCode.push_back(listString[i]);
+			}
+			if ((i < size - 1) && (listStroka[i + 1] == 10)) {
+				if (listString[i + 1] == "DB")
+					spaceMem.push_back(1);
+				else if (listString[i + 1] == "DW")
+					spaceMem.push_back(2);
+				else if (listString[i + 1] == "DD")
+					spaceMem.push_back(4);
 			}
 			break;
 		case 9:
@@ -631,6 +669,8 @@ int element::memR32(const string& r32, const string& index, const int &scaled) {
 		return (memIndex(index, scaledBuf) + 2);
 	else if (r32 == "EBX")
 		return (memIndex(index, scaledBuf) + 3);
+	else if (r32 == "ESP")
+		return (memIndex(index, scaledBuf) + 4);
 	else if (r32 == "EBP")
 		return (memIndex(index, scaledBuf) + 5);
 	else if (r32 == "ESI")
@@ -649,10 +689,45 @@ int element::memIndex(const string& index, const int &scaled) {
 		return (scaled * 64 + 16);
 	else if (index == "EBX")
 		return (scaled * 64 + 24);
+	else if (index == "ESP")
+		return (scaled * 64 + 40);
 	else if (index == "EBP")
-		return (scaled * 64 + 32);
+		return (scaled * 64 + 40);
 	else if (index == "ESI")
 		return (scaled * 64 + 48);
 	else if (index == "EDI")
 		return (scaled * 64 + 56);
+	return (scaled * 64);
+}
+
+string element::typeRegistersString(const string& type) {
+	if ((type == "AL") || (type == "AX"))
+		return "EAX";
+	else if ((type == "CL") || (type == "CX"))
+		return "ECX";
+	else if ((type == "DL") || (type == "DX"))
+		return "EDX";
+	else if ((type == "BL") || (type == "BX"))
+		return "EBX";
+	else if ((type == "AH") || (type == "SP"))
+		return "ESP";
+	else if ((type == "CH") || (type == "BP"))
+		return "EBP";
+	else if ((type == "DH") || (type == "SI"))
+		return "ESI";
+	else if ((type == "BH") || (type == "DI"))
+		return "EDI";
+	return type;
+}
+
+
+int element::sizeVarible(const vector<int> &memory, const string& value, const vector<string> &space, const vector<string> &spaceCode) {
+	int size = memory.size();
+	for (int i = 0; i < size; ++i) {
+		if ((i < space.size()) && (value == space[i]))
+			return memory[i];
+		else if ((i < spaceCode.size()) && (value == spaceCode[i]))
+			return memory[i];
+	}
+	return 0;
 }

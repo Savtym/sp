@@ -8,14 +8,15 @@
 class element {
 public:
 	vector<vector<string>> list;
+	vector<vector<string>> assume;
 	vector<vector<int>> listInfo;
 	vector<vector<int>> grammar;
-	vector<vector<string>> assume;
+	vector<vector<int>> tableCommand;
 	vector<string> space;
 	vector<string> spaceCode;
-	vector<vector<int>> tableCommand;
 	vector<int> equConst;
 	vector<int> spaceNum;
+	vector<int> spaceMem;
 	vector<int> memory;
 
 	element() {};
@@ -56,8 +57,12 @@ public:
 	void assumeInt(vector<vector<string>> &assume);
 	//mem Register 32
 	int memR32(const string& r32, const string& index, const int &scaled);
-	//
+	//add function mem Register 32
 	int memIndex(const string& index, const int &scaled);
+	//type register 8 bit and 32 bit
+	string typeRegistersString(const string& type);
+	//size variable DB DW DD
+	int sizeVarible(const vector<int> &memory, const string& value, const vector<string> &space, const vector<string> &spaceCode);
 
 
 
