@@ -16,7 +16,7 @@ begin:
 		dec eax
 	endif
 		and eax, ebx
-	dec ah
+	dec ebx
 	or ebx, len[ecx + edi * 4]
 	cmp myDouble[ecx + eax * 8], ebx
 	jnz m1

@@ -31,8 +31,8 @@ public:
 					}
 				}
 				else {
-					fileRecord << "\nError\n";
-					cout << "\nError\n";
+					fileRecord << "\nERROR\n";
+					cout << "\nERROR\n";
 					fl = false;
 				}
 				++j;

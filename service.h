@@ -12,8 +12,8 @@ const regex directives("END|SEGMENT|ENDS|PTR|EQU|ASSUME|IF|ELSE|ENDIF"); //1 dir
 const regex registers("EAX|ECX|EDX|EBX|ESP|EBP|ESI|EDI|AL|CL|DL|BL|AH|CH|DH|BH"); //2 register
 const regex segmentRegisters("CS|DS|SS|ES|FS|GS"); //3 segment registers
 const regex commands("STI|DEC|INC|AND|OR|CMP|MOV|ADD|JNZ"); //4 commands
-const regex numberChars16("[0-9ABCDEF]+H"); //5 16th number
 
+const string numberChars16("0123456789ABCDEFH"); //5 16th number
 const string numberChars("1234567890"); //6 number
 const string singleStringLexems(",:()[]+-*"); //7 a one symbol
 const string identifierChars("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@"); //8 identificator

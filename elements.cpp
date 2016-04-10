@@ -22,6 +22,8 @@ bool element::ReadFromFile(string& fileName) {
 				listInfo.push_back(vector<int>());
 				grammar.push_back(vector<int>());
 				tableCommand.push_back(vector<int>());
+				memory.push_back(0);
+				ERROR.push_back(false);
 			}
 			else
 				flIF = true;
@@ -50,8 +52,10 @@ bool element::ReadFromFile(string& fileName) {
 			size = strokaBuf.size();
 			for (int i = 0; i < size; ++i) {
 				if ((strokaBuf[i][0] == '"') || (strokaBuf[i][0] == '\'')) {
-					if ((strokaBuf[i][bufStr.length() - 1] == '"') || (strokaBuf[i][bufStr.length() - 1] == '\''))
+					if ((strokaBuf[i].back() == '"') || (strokaBuf[i].back() == '\''))
 						bufInt = 9;
+					else
+						bufInt = 0;
 				}
 				else {
 					convert(strokaBuf[i]);
@@ -64,6 +68,8 @@ bool element::ReadFromFile(string& fileName) {
 				}
 				list[number].push_back(strokaBuf[i]);
 				listInfo[number].push_back(bufInt);
+				if (bufInt == 0)
+					ERROR[number] = true;
 			}
 
 			//if else endif
@@ -74,38 +80,44 @@ bool element::ReadFromFile(string& fileName) {
 			}
 
 			//syntax
-			if (!syntax(listInfo[number], list[number], grammar[number]))
+			if (!syntax(listInfo[number], list[number], grammar[number])) {
 				grammar[number].push_back(-1);
+				ERROR[number] == true;
+			}
 
 			//memory 
-			bufMemoryDyn = memoryVec(listInfo[number], list[number], grammar[number], number);
-			if (bufMemoryDyn == -1) {
-				memory.push_back(-1); //for equ "= <const>"
-				bufMemoryDyn = 0;
-			}
-			else if (bufMemoryDyn == -2) { //segment || data
-				bufMemory = 0;
-				memory.push_back(bufMemory);
-			}
-			else if (bufMemoryDyn == -3) {
-				memory.push_back(-3); // string is space
-				bufMemoryDyn = 0;
-			}
-			else if (bufMemoryDyn == -4) {
-				memory.push_back(-4); // directive if, endif, else, end ("\t\t")
-				bufMemoryDyn = 0;
-			}
-			else {
-				memory.push_back(bufMemory);
-				bufMemory += bufMemoryDyn;
-			}
-			if (flMemoryNum == space.size()) {
-				spaceNum.push_back(memory[number]);
-				++flMemoryNum;
-			}
-			if (flMemoryNumCode == spaceCode.size()) {
-				spaceNum.push_back(memory[number]);
-				++flMemoryNumCode;
+			if (!ERROR[number]) {
+				bufMemoryDyn = memoryVec(listInfo[number], list[number], grammar[number], number);
+				if (bufMemoryDyn == -1) {
+					memory[number] = -1; //for equ "= <const>"
+					bufMemoryDyn = 0;
+				}
+				else if (bufMemoryDyn == -2) { //segment || data
+					bufMemory = 0;
+					memory[number] = bufMemory;
+				}
+				else if (bufMemoryDyn == -3) {
+					memory[number] = -3; // string is space
+					bufMemoryDyn = 0;
+				}
+				else if (bufMemoryDyn == -4) {
+					memory[number] = -4; // directive if, endif, else, end ("\t\t")
+					bufMemoryDyn = 0;
+				}
+				else if (bufMemoryDyn == -5)
+					ERROR[number] = true;
+				else {
+					memory[number] = bufMemory;
+					bufMemory += bufMemoryDyn;
+				}
+				if ((!ERROR[number]) && (flMemoryNum == space.size())) {
+					spaceNum.push_back(memory.back());
+					++flMemoryNum;
+				}
+				if ((!ERROR[number]) && (flMemoryNumCode == spaceCode.size())) {
+					spaceNum.push_back(memory.back());
+					++flMemoryNumCode;
+				}
 			}
 			strokaBuf.clear();
 			++number;
@@ -298,9 +310,13 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 		case 4:
 			if (listString[i] == "STI") {
 				tableCommand[number].push_back(251);
+				if (listString.size() != 1)
+					return -5;
 				return 1;
 			}
 			else if (listString[i] == "DEC") {
+				if (listString.size() != 2)
+					return -5;
 				if (regex_match(listString[i + 1], typeRegisters)) {
 					tableCommand[number].push_back(254);
 					tableCommand[number].push_back(memR32(typeRegistersString(listString[i + 1]), "rg", 8) + 8);
@@ -310,6 +326,10 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 1;
 			}
 			else if (listString[i] == "INC") {
+				if ((listStroka[i + 1] == 3) && (listString.size() != 11))
+					return -5;
+				if ((listString.size() != 9) && (listString.size() != 11))
+					return -5;
 				int bufMemory = 0;
 				if (segmentRegisterInCommands(listString, number)) {
 					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
@@ -342,6 +362,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "AND") {
+				if (listString.size() != 4)
+					return -5;
 				if (regex_match(listString[i+1], typeRegisters))
 					tableCommand[number].push_back(34);
 				else
@@ -350,6 +372,10 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 2;
 			}
 			else if (listString[i] == "OR") {
+				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
+					return -5;
+				if ((listString.size() != 11) && (listString.size() != 13))
+					return -5;
 				segmentRegisterInCommands(listString, number);
 				if (regex_match(listString[i + 1], typeRegisters)) {
 					tableCommand[number].push_back(10);
@@ -366,6 +392,10 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 					return (segmentSizeMem(listString, listStroka, i + 3));
 			}
 			else if (listString[i] == "CMP") {
+				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
+					return -5;
+				if ((listString.size() != 11) && (listString.size() != 13))
+					return -5;
 				segmentRegisterInCommands(listString, number);
 				if (regex_match(listString.back(), typeRegisters)) {
 					tableCommand[number].push_back(56);
@@ -382,6 +412,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return segmentSizeMem(listString, listStroka, i + 1);
 			}
 			else if (listString[i] == "MOV") {
+				if (listString.size() != 4)
+					return -5;
 				int ss = stoi(listString.back(), nullptr, 16);
 				if (regex_match(listString[i + 1], typeRegisters)) {
 					tableCommand[number].push_back(180);
@@ -393,6 +425,10 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 5;
 			}
 			else if (listString[i] == "ADD") {
+				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
+					return -5;
+				if ((listString.size() != 11) && (listString.size() != 13))
+					return -5;
 				int bufMemory = 1;
 				if (segmentRegisterInCommands(listString, number)) {
 					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
@@ -427,6 +463,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "JNZ") {
+				if (listString.size() != 2)
+					return -5;
 				int sizeCode = spaceCode.size();
 				for (int j = 0; j < sizeCode; ++j) {
 					if (spaceCode[j] == listString[1]) {
@@ -448,6 +486,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if ((i < size - 2) && (listString[i + 1] == "EQU")) {
 				//spaceNum.push_back(-3);
+				if ((listString.size() != 3) && (listStroka[i + 2] != 8))
+					return -5;
 				if (listStroka[i + 2] == 5)
 					equConst.push_back(atoi(listString[i + 2].c_str()));
 				else
@@ -456,9 +496,15 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if (((spaceCode.size() == 0) || (!strInVec(listString[i], spaceCode))) && \
 				(i < size - 1) && (!Active_seg) && ((listStroka[i + 1] == 10) || (listString[i+1] == ":"))) {
+				if ((listString.size() != 2) && (listString[i + 1] == ":"))
+					return -5;
+				if ((listString.size() != 3) && (listString.size() != 2))
+					return -5;
 				spaceCode.push_back(listString[i]);
 			}
 			if ((i < size - 1) && (listStroka[i + 1] == 10)) {
+				if (listString.size() != 3)
+					return -5;
 				if (listString[i + 1] == "DB")
 					spaceMem.push_back(1);
 				else if (listString[i + 1] == "DW")
@@ -489,7 +535,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 2;
 			}
 			else if (listString[i] == "DD") {
-				int ss = stoi(listString[i + 1], nullptr, 16);
+				int ss = stoi(listString[i + 1], nullptr, 10);
 				tableCommand[number].push_back(ss);
 				return 4;
 			}
@@ -593,7 +639,7 @@ int element::findAnalyze(const string &value) {
 		return 3;
 	else if (regex_match(value, commands))
 		return 4;
-	else if (regex_search(value, numberChars16))
+	else if (inStringInd(value, numberChars16) && (value[value.length() - 1] == 'H'))
 		return 5;
 	else if (inStringInd(value, numberChars))
 		return 6;

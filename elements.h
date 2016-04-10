@@ -14,6 +14,7 @@ public:
 	vector<vector<int>> tableCommand;
 	vector<string> space;
 	vector<string> spaceCode;
+	vector<bool> ERROR;
 	vector<int> equConst;
 	vector<int> spaceNum;
 	vector<int> spaceMem;
