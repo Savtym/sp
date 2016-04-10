@@ -361,6 +361,9 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if (listString[i] == "CMP") {
 				segmentRegisterInCommands(listString, number);
+				tableCommand[number].push_back(57);
+				tableCommand[number].push_back(memR32("ESP", listString[i + 10], 4));
+				tableCommand[number].push_back(memR32(listString[i + 3], listString[i + 5], stoi(listString[i + 7])));
 				return segmentSizeMem(listString, listStroka, i + 1);
 			}
 			else if (listString[i] == "MOV") {
@@ -373,11 +376,16 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return (segmentSizeMem(listString, listStroka, i + 1) + 1);
 			}
 			else if (listString[i] == "JNZ") {
-				int sizeAssume = assume.size();
-				for (int j = 0; j < sizeAssume; ++j) {
-					if (assume[j][1] == listString[1])
+				int sizeCode = spaceCode.size();
+				for (int j = 0; j < sizeCode; ++j) {
+					if (spaceCode[j] == listString[1]) {
+						tableCommand[number].push_back(117);
+						tableCommand[number].push_back(225+spaceNum[space.size() + j]);
 						return 2;
+					}
 				}
+				tableCommand[number].push_back(15);
+				tableCommand[number].push_back(133);
 				return 6;
 			}
 			break;
@@ -396,7 +404,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return -1;
 			}
 			else if (((spaceCode.size() == 0) || (!strInVec(listString[i], spaceCode))) && \
-				(i < size - 1) && (!Active_seg) && (listStroka[i + 1] == 10)) {
+				(i < size - 1) && (!Active_seg) && ((listStroka[i + 1] == 10) || (listString[i+1] == ":"))) {
 				spaceCode.push_back(listString[i]);
 			}
 			if ((i < size - 1) && (listStroka[i + 1] == 10)) {

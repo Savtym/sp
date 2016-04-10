@@ -70,8 +70,7 @@ public:
 					++iCur;
 				}
 				//logical segment commands and register address (mem)
-				if ((list.listInfo[i][k] == 8) && (k < sizeList - 1) && (list.listInfo[i][k+1] != 10)) {
-					sizeCom = list.tableCommand[i].size();
+				if ((list.listInfo[i][k] == 8) && (k < sizeList - 1) && (list.listInfo[i][k+1] != 10) && (list.list[i][k + 1] != ":")) {
 					sizeCom = list.spaceNum.size();
 					for (int j = 0; j < sizeCom; ++j) {
 						if ((j < list.space.size()) && (list.list[i][k] == list.space[j])) {
@@ -80,8 +79,8 @@ public:
 							break;
 						}
 						else if ((j < list.spaceCode.size()) && (list.list[i][k] == list.spaceCode[j])) {
-							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size()-j] << " R";
-							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size()-j] << " R";
+							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size()+j] << " R";
+							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size()+j] << " R";
 							break;
 						}
 					}
@@ -89,7 +88,7 @@ public:
 				//other commands logical segment
 				else if (list.listInfo[i][k] == 4) {
 					sizeCom = list.tableCommand[i].size();
-					for (int l = k; l < sizeList && iCur == 0; ++l) {
+					for (int l = k; l < sizeList && iCur == 0 && list.list[i][k] != "JNZ"; ++l) {
 						if (strInVec(list.list[i][l], list.spaceCode)) {
 							cout << " " << hex << uppercase << list.tableCommand[i][0] << ":";
 							fileRecord << " " << hex << uppercase << list.tableCommand[i][0] << ":";
@@ -102,6 +101,17 @@ public:
 						fileRecord << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
 					}
 					iCur = 0;
+				}
+				//command "JNZ" else jump no location
+				if (list.list[i][k] == "JNZ") {
+					sizeCom = list.spaceCode.size();
+					for (int j = 0; j < sizeCom; ++j) {
+						if (list.list[i][k+1] == list.spaceCode[j]) {
+							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
+							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
+							break;
+						}
+					}
 				}
 			}
 			for (int j = 0; j < sizeStr; ++j) {
