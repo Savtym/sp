@@ -290,11 +290,16 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 		switch (listStroka[i]) {
 		case 1:
 			if (listString[i] == "SEGMENT") {
+				if ((listString.size() != 2) || (listStroka[i-1] != 8))
+					return -5;
+				segmentData = listString[i - 1];
 				return -2;
 			}
 			else if (listString[i] == "ENDS") {
 				//tableAssume(listString, i + 1, true); //add table assume (for proc .386)
 				Active_seg = false;
+				if ((listString.size() != 2) || (listStroka[i - 1] != 8) || (segmentData != listString[i-1]))
+					return -5;
 				return 0;
 			}
 			else if (listString[i] == "ASSUME") {
@@ -304,8 +309,10 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			else if ((listString[i] == "IF") || (listString[i] == "ELSE") || (listString[i] == "ENDIF")) {
 				return -4; //tab and if else endif
 			}
-			else if (listString[i] == "END")
+			else if (listString[i] == "END") {
+				end = true;
 				return -4; //tab 
+			}
 			break;
 		case 4:
 			if (listString[i] == "STI") {
@@ -315,7 +322,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return 1;
 			}
 			else if (listString[i] == "DEC") {
-				if (listString.size() != 2)
+				if ((listString.size() != 2) || (!regex_match(listString[i+1], registers)))
 					return -5;
 				if (regex_match(listString[i + 1], typeRegisters)) {
 					tableCommand[number].push_back(254);
@@ -329,6 +336,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				if ((listStroka[i + 1] == 3) && (listString.size() != 11))
 					return -5;
 				if ((listString.size() != 9) && (listString.size() != 11))
+					return -5;
+				if (!memoryError(listString, listStroka))
 					return -5;
 				int bufMemory = 0;
 				if (segmentRegisterInCommands(listString, number)) {
@@ -362,7 +371,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "AND") {
-				if (listString.size() != 4)
+				if ((listString.size() != 4) || (!regex_match(listString[i + 1], registers)) || (!regex_match(listString[i + 3], registers)))
 					return -5;
 				if (regex_match(listString[i+1], typeRegisters))
 					tableCommand[number].push_back(34);
@@ -374,7 +383,9 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			else if (listString[i] == "OR") {
 				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
 					return -5;
-				if ((listString.size() != 11) && (listString.size() != 13))
+				if ((listString.size() != 11) && (listString.size() != 13) || (!regex_match(listString[i + 1], registers)))
+					return -5;
+				if (!memoryError(listString, listStroka))
 					return -5;
 				segmentRegisterInCommands(listString, number);
 				if (regex_match(listString[i + 1], typeRegisters)) {
@@ -394,7 +405,9 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			else if (listString[i] == "CMP") {
 				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
 					return -5;
-				if ((listString.size() != 11) && (listString.size() != 13))
+				if ((listString.size() != 11) && (listString.size() != 13) || (!regex_match(listString.back(), registers)))
+					return -5;
+				if (!memoryError(listString, listStroka))
 					return -5;
 				segmentRegisterInCommands(listString, number);
 				if (regex_match(listString.back(), typeRegisters)) {
@@ -412,7 +425,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return segmentSizeMem(listString, listStroka, i + 1);
 			}
 			else if (listString[i] == "MOV") {
-				if (listString.size() != 4)
+				if ((listString.size() != 4) || (!regex_match(listString[i + 1], registers)) || (listStroka[i + 3] != 5))
 					return -5;
 				int ss = stoi(listString.back(), nullptr, 16);
 				if (regex_match(listString[i + 1], typeRegisters)) {
@@ -427,7 +440,9 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			else if (listString[i] == "ADD") {
 				if ((listStroka[i + 1] == 3) && (listString.size() != 13))
 					return -5;
-				if ((listString.size() != 11) && (listString.size() != 13))
+				if ((listString.size() != 11) && (listString.size() != 13) && (listStroka.back() != 5))
+					return -5;
+				if (!memoryError(listString, listStroka))
 					return -5;
 				int bufMemory = 1;
 				if (segmentRegisterInCommands(listString, number)) {
@@ -463,7 +478,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "JNZ") {
-				if (listString.size() != 2)
+				if ((listString.size() != 2) || (listStroka[i + 1] != 8))
 					return -5;
 				int sizeCode = spaceCode.size();
 				for (int j = 0; j < sizeCode; ++j) {
@@ -486,7 +501,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if ((i < size - 2) && (listString[i + 1] == "EQU")) {
 				//spaceNum.push_back(-3);
-				if ((listString.size() != 3) && (listStroka[i + 2] != 8))
+				if ((listString.size() != 3) || (listStroka[i + 2] != 5))
 					return -5;
 				if (listStroka[i + 2] == 5)
 					equConst.push_back(atoi(listString[i + 2].c_str()));
@@ -516,6 +531,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 		case 9:
 			return (listString[i].size() - 2);
 		case 10:
+			if ((listString.size() != 3) || (listStroka[i-1] != 8))
+				return -5;
 			if ((listString[i] == "DB") && (listStroka[i + 1] == 9)) {
 				int sizeStr = listString[i + 1].size();
 				for (int k = 1; k < sizeStr - 1; ++k) {
@@ -825,7 +842,6 @@ string element::typeRegistersString(const string& type) {
 	return type;
 }
 
-
 int element::sizeVarible(const vector<int> &memory, const string& value, const vector<string> &space, const vector<string> &spaceCode) {
 	int size = memory.size();
 	for (int i = 0; i < size; ++i) {
@@ -835,4 +851,27 @@ int element::sizeVarible(const vector<int> &memory, const string& value, const v
 			return memory[i];
 	}
 	return 0;
+}
+
+bool element::memoryError(const vector<string> &listString, const vector<int> &listStroka) {
+	int size = listString.size();
+	int iCur = 0;
+	for (; iCur < size && listStroka[iCur] != 8; ++iCur);
+	if (iCur > size - 3)
+		return false;
+	if (listStroka[iCur + 2] != 2)
+		return false;
+	if (regex_match(listString[iCur + 2], typeRegisters))
+		return false;
+	if (listString[iCur + 3] != "+")
+		return false;
+	if (listStroka[iCur + 4] != 2)
+		return false;
+	if (regex_match(listString[iCur + 4], typeRegisters))
+		return false;
+	if (listString[iCur + 5] != "*")
+		return false;
+	if ((listString[iCur + 6] != "2") && (listString[iCur + 6] != "4") && (listString[iCur + 6] != "8"))
+		return false;
+	return true;
 }

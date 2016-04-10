@@ -19,6 +19,7 @@ public:
 	vector<int> spaceNum;
 	vector<int> spaceMem;
 	vector<int> memory;
+	bool end = false;
 
 	element() {};
 	~element() {};
@@ -64,12 +65,14 @@ public:
 	string typeRegistersString(const string& type);
 	//size variable DB DW DD
 	int sizeVarible(const vector<int> &memory, const string& value, const vector<string> &space, const vector<string> &spaceCode);
-
+	//if memory error
+	bool memoryError(const vector<string> &listString, const vector<int> &listStroka);
 
 
 private:
 	int number;
 	bool Active_seg = true;
+	string segmentData;
 	ifstream f;
 	vector<char> st;
 	vector<std::string> strokaBuf;

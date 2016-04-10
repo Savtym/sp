@@ -142,12 +142,18 @@ public:
 					//command "JNZ" else jump no location
 					if (list.list[i][k] == "JNZ") {
 						sizeCom = list.spaceCode.size();
-						for (int j = 0; j < sizeCom && list.tableCommand[i][0] != 117; ++j) {
+						int j = 0;
+						for (; j < sizeCom && list.tableCommand[i][0] != 117; ++j) {
 							if (list.list[i][k + 1] == list.spaceCode[j]) {
 								cout << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
 								fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
 								break;
 							}
+						}
+						if (j == sizeCom) {
+							cout << " " << dec << i + 1 << ". ERROR\t";
+							fileRecord << " " << dec << i + 1 << ". ERROR\t";
+							break;
 						}
 					}
 				}
@@ -162,6 +168,10 @@ public:
 			}
 			cout << '\n';
 			fileRecord << '\n';
+		}
+		if (!end) {
+			cout << " " << dec << list.list.size() << ". ERROR END\n";
+			fileRecord << " " << dec << list.list.size() << ". ERROR END\n";
 		}
 	}
 

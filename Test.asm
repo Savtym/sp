@@ -22,6 +22,6 @@ begin:
 	jnz m1
 	add myByte[ecx + eax * 2], 4h
 m1:
-	mov eax, 4c00h 
+	mov eax, 4c00h
 code ends
-end 
+end
