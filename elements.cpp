@@ -311,8 +311,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if (listString[i] == "INC") {
 				int bufMemory = 0;
-				int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
 				if (segmentRegisterInCommands(listString, number)) {
+					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
 					if (sizeMemoryBuf == 1)
 						tableCommand[number].push_back(254);
 					else if (sizeMemoryBuf == 2) {
@@ -326,6 +326,7 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 					tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
 				}
 				else {
+					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 1], space, spaceCode);
 					if (sizeMemoryBuf == 1)
 						tableCommand[number].push_back(254);
 					else if (sizeMemoryBuf == 2) {
@@ -350,30 +351,80 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			else if (listString[i] == "OR") {
 				segmentRegisterInCommands(listString, number);
-				int bufReg = 0;
 				if (regex_match(listString[i + 1], typeRegisters)) {
-					++bufReg;
+					tableCommand[number].push_back(10);
+					tableCommand[number].push_back(memR32("ESP", typeRegistersString(listString[i+1]), 4));
 				}
-				tableCommand[number].push_back(11);
-				tableCommand[number].push_back(memR32("ESP", listString[i + 1], 4));
+				else {
+					tableCommand[number].push_back(11);
+					tableCommand[number].push_back(memR32("ESP", listString[i + 1], 4));
+				}
 				tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
-				return (bufReg + segmentSizeMem(listString, listStroka, i + 3));
+				if (listStroka[i+3] == 3)
+					return (1 + segmentSizeMem(listString, listStroka, i + 5));
+				else
+					return (segmentSizeMem(listString, listStroka, i + 3));
 			}
 			else if (listString[i] == "CMP") {
 				segmentRegisterInCommands(listString, number);
-				tableCommand[number].push_back(57);
-				tableCommand[number].push_back(memR32("ESP", listString[i + 10], 4));
-				tableCommand[number].push_back(memR32(listString[i + 3], listString[i + 5], stoi(listString[i + 7])));
+				if (regex_match(listString.back(), typeRegisters)) {
+					tableCommand[number].push_back(56);
+					tableCommand[number].push_back(memR32("ESP", typeRegistersString(listString.back()), 4));
+				}
+				else {
+					tableCommand[number].push_back(57);
+					tableCommand[number].push_back(memR32("ESP", listString.back(), 4));
+				}
+				if (listStroka[i + 1] == 3)
+					tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
+				else
+					tableCommand[number].push_back(memR32(listString[i + 3], listString[i + 5], stoi(listString[i + 7])));
 				return segmentSizeMem(listString, listStroka, i + 1);
 			}
 			else if (listString[i] == "MOV") {
-				if (regex_match(listString[i + 1], typeRegisters))
+				int ss = stoi(listString.back(), nullptr, 16);
+				if (regex_match(listString[i + 1], typeRegisters)) {
+					tableCommand[number].push_back(180);
+					tableCommand[number].push_back(ss);
 					return 2;
+				}
+				tableCommand[number].push_back(184);
+				tableCommand[number].push_back(ss);
 				return 5;
 			}
 			else if (listString[i] == "ADD") {
-				segmentRegisterInCommands(listString, number);
-				return (segmentSizeMem(listString, listStroka, i + 1) + 1);
+				int bufMemory = 1;
+				if (segmentRegisterInCommands(listString, number)) {
+					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 3], space, spaceCode);
+					if (sizeMemoryBuf == 1)
+						tableCommand[number].push_back(128);
+					else if (sizeMemoryBuf == 2) {
+						tableCommand[number].push_back(102);
+						tableCommand[number].push_back(131);
+						++bufMemory;
+					}
+					else if (sizeMemoryBuf == 4)
+						tableCommand[number].push_back(131);
+					tableCommand[number].push_back(memR32("ESP", listString[i + 7], 4));
+					tableCommand[number].push_back(memR32(listString[i + 5], listString[i + 7], stoi(listString[i + 9])));
+				}
+				else {
+					int sizeMemoryBuf = sizeVarible(spaceMem, listString[i + 1], space, spaceCode);
+					if (sizeMemoryBuf == 1)
+						tableCommand[number].push_back(128);
+					else if (sizeMemoryBuf == 2) {
+						tableCommand[number].push_back(102);
+						tableCommand[number].push_back(131);
+						++bufMemory;
+					}
+					else if (sizeMemoryBuf == 4)
+						tableCommand[number].push_back(131);
+					tableCommand[number].push_back(memR32("ESP", listString[i + 5], 4));
+					tableCommand[number].push_back(memR32(listString[i + 3], listString[i + 5], stoi(listString[i + 7])));
+				}
+				int ss = stoi(listString[listString.size() - 1], nullptr, 16);
+				tableCommand[number].push_back(ss);
+				return (segmentSizeMem(listString, listStroka, i + 1) + bufMemory);
 			}
 			else if (listString[i] == "JNZ") {
 				int sizeCode = spaceCode.size();

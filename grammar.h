@@ -84,6 +84,16 @@ public:
 							break;
 						}
 					}
+					if (strInVec("ADD", list.list[i])) {
+						if (list.tableCommand[i].back() > 255) {
+							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.tableCommand[i].back();
+							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.tableCommand[i].back();
+						}
+						else {
+							cout << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i].back();
+							fileRecord << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i].back();
+						}
+					}
 				}
 				//other commands logical segment
 				else if (list.listInfo[i][k] == 4) {
@@ -96,16 +106,24 @@ public:
 							break;
 						}
 					}
+					if (list.list[i][k] == "ADD")
+						--sizeCom;
 					for (; iCur < sizeCom; ++iCur) {
-						cout << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
-						fileRecord << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
+						if (list.tableCommand[i][iCur] > 255) {
+							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.tableCommand[i][iCur];
+							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.tableCommand[i][iCur];
+						}
+						else {
+							cout << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
+							fileRecord << " " << setfill('0') << setw(2) << hex << uppercase << list.tableCommand[i][iCur];
+						}
 					}
 					iCur = 0;
 				}
 				//command "JNZ" else jump no location
 				if (list.list[i][k] == "JNZ") {
 					sizeCom = list.spaceCode.size();
-					for (int j = 0; j < sizeCom; ++j) {
+					for (int j = 0; j < sizeCom && list.tableCommand[i][0] != 117; ++j) {
 						if (list.list[i][k+1] == list.spaceCode[j]) {
 							cout << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
 							fileRecord << " " << setfill('0') << setw(8) << hex << uppercase << list.spaceNum[list.space.size() + j] << " R";
