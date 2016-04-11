@@ -12,9 +12,12 @@ public:
 	vector<vector<int>> listInfo;
 	vector<vector<int>> grammar;
 	vector<vector<int>> tableCommand;
+	vector<string> tableSegment;
 	vector<string> space;
 	vector<string> spaceCode;
+	vector<string> equName;
 	vector<bool> ERROR;
+	vector<int> tableSegmentMemory;
 	vector<int> equConst;
 	vector<int> spaceNum;
 	vector<int> spaceMem;
@@ -72,6 +75,7 @@ public:
 private:
 	int number;
 	bool Active_seg = true;
+	bool flSegment = false;
 	string segmentData;
 	ifstream f;
 	vector<char> st;

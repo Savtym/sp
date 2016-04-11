@@ -10,7 +10,7 @@ int main() {
 	syntax sn;
 	grammar gr;
 	string fileName = "test.asm";
-	string fileRecord = "info.txt";
+	string fileRecord = "info.lst";
 	ofstream fr;
 	fr.open(fileRecord);
 	list.ReadFromFile(fileName);

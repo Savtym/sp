@@ -110,6 +110,10 @@ bool element::ReadFromFile(string& fileName) {
 					memory[number] = bufMemory;
 					bufMemory += bufMemoryDyn;
 				}
+				if (flSegment) {
+					tableSegmentMemory.push_back(memory[number]);
+					flSegment = false;
+				}
 				if ((!ERROR[number]) && (flMemoryNum == space.size())) {
 					spaceNum.push_back(memory.back());
 					++flMemoryNum;
@@ -293,11 +297,13 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				if ((listString.size() != 2) || (listStroka[i-1] != 8))
 					return -5;
 				segmentData = listString[i - 1];
+				tableSegment.push_back(listString[i - 1]);
 				return -2;
 			}
 			else if (listString[i] == "ENDS") {
 				//tableAssume(listString, i + 1, true); //add table assume (for proc .386)
 				Active_seg = false;
+				flSegment = true;
 				if ((listString.size() != 2) || (listStroka[i - 1] != 8) || (segmentData != listString[i-1]))
 					return -5;
 				return 0;
@@ -494,14 +500,16 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 			}
 			break;
 		case 8:
+			if ((listString.size() == 1) ||((listString[i+1] == ":") && (Active_seg)))
+				return -5;
 			if (((space.size() == 0) || (!strInVec(listString[i], space))) && \
 				(i < size - 2) && ((listStroka[i + 1] == 10) || (listString[i + 1] == "EQU")) && \
 				(Active_seg)) {
 				space.push_back(listString[i]);
 			}
-			else if ((i < size - 2) && (listString[i + 1] == "EQU")) {
+			else if (listString[i + 1] == "EQU") {
 				//spaceNum.push_back(-3);
-				if ((listString.size() != 3) || (listStroka[i + 2] != 5))
+				if ((listString.size() != 3) || (listStroka[i + 2] != 5) || (listStroka[i] != 8))
 					return -5;
 				if (listStroka[i + 2] == 5)
 					equConst.push_back(atoi(listString[i + 2].c_str()));
@@ -515,6 +523,8 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 					return -5;
 				if ((listString.size() != 3) && (listString.size() != 2))
 					return -5;
+				if (listString[i + 1] == ":")
+					spaceMem.push_back(0);
 				spaceCode.push_back(listString[i]);
 			}
 			if ((i < size - 1) && (listStroka[i + 1] == 10)) {

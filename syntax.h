@@ -13,7 +13,6 @@ public:
 		int i = 0;
 		int j = 0;
 		bool fl = true;
-		int sizeAnal;
 		while ((fl) && (i < size)) {
 			fileRecord << " " << i + 1;
 			cout << " " << i + 1;

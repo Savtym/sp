@@ -10,7 +10,6 @@ public:
 		int sizeStr;
 		int equ = 0;
 		int iCur = 0;
-		bool flNumb;
 		for (int i = 0; i < size; ++i) {
 			sizeStr = list.list[i].size();
 			if (!list.ERROR[i]) {
@@ -169,9 +168,61 @@ public:
 			cout << '\n';
 			fileRecord << '\n';
 		}
-		if (!end) {
+		if (!list.end) {
 			cout << " " << dec << list.list.size() << ". ERROR END\n";
 			fileRecord << " " << dec << list.list.size() << ". ERROR END\n";
+		}
+		//listing table
+		int sizeTable = list.tableSegment.size();
+		cout << endl << "  NAME" << "\t\tLENGTH\n";
+		fileRecord << endl << "  NAME" << "\t\tLENGTH\n";
+		for (int i = 0; i < sizeTable; ++i) {
+			cout << "  " << list.tableSegment[i] << "\t\t" << setfill('0') << setw(4) << hex << uppercase << list.tableSegmentMemory[i] << "\n";
+			fileRecord << "  " << list.tableSegment[i] << "\t\t" << setfill('0') << setw(4) << hex << uppercase << list.tableSegmentMemory[i] << "\n";
+		}
+		cout << endl << "  NAME" << "\t\t  TYPE" << "\t\tVALUE" << "\t\tATTR\n";
+		fileRecord << endl << "  NAME" << "\t\t  TYPE" << "\t\tVALUE" << "\t\tATTR\n";
+		sizeTable = list.space.size();
+		for (int i = 0; i < sizeTable; ++i) {
+			cout << "  " << list.space[i];
+			fileRecord << "  " << list.space[i];
+			if (list.spaceMem[i] == 1) {
+				cout << "\tL BYTE\t\t";
+				fileRecord << "\tL BYTE\t\t";
+			}
+			else if (list.spaceMem[i] == 2) {
+				cout << "\tL WORD\t\t";
+				fileRecord << "\tL WORD\t\t";
+			}
+			else if (list.spaceMem[i] == 4) {
+				cout << "\tL DWORD\t\t";
+				fileRecord << "\tL DWORD\t\t";
+			}
+			cout << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[i] << "\t\t" << list.tableSegment[0] << "\n";
+			fileRecord << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[i] << "\t\t" << list.tableSegment[0] << "\n";
+		}
+		int sizeTableCode = list.spaceCode.size();
+		for (int i = 0; i < sizeTableCode; ++i) {
+			cout << "  " << list.spaceCode[i];
+			fileRecord << "  " << list.spaceCode[i];
+			if (list.spaceMem[sizeTable+i] == 1) {
+				cout << "\t\tL BYTE\t\t";
+				fileRecord << "\t\tL BYTE\t\t";
+			}
+			else if (list.spaceMem[sizeTable+i] == 2) {
+				cout << "\t\tL WORD\t\t";
+				fileRecord << "\t\tL WORD\t\t";
+			}
+			else if (list.spaceMem[sizeTable+i] == 4) {
+				cout << "\t\tL DWORD\t\t";
+				fileRecord << "\t\tL DWORD\t\t";
+			}
+			else if (list.spaceMem[sizeTable+i] == 0) {
+				cout << "\t\tL NEAR\t\t";
+				fileRecord << "\t\tL NEAR\t\t";
+			}
+			cout << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[sizeTable+i] << "\t\t" << list.tableSegment[1] << "\n";
+			fileRecord << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[sizeTable+i] << "\t\t" << list.tableSegment[1] << "\n";
 		}
 	}
 
