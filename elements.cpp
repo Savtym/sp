@@ -511,10 +511,14 @@ int element::memoryVec(const vector<int> &listStroka, const vector<string> &list
 				//spaceNum.push_back(-3);
 				if ((listString.size() != 3) || (listStroka[i + 2] != 5) || (listStroka[i] != 8))
 					return -5;
-				if (listStroka[i + 2] == 5)
+				if (listStroka[i + 2] == 5) {
+					equName.push_back(listString[i]);
 					equConst.push_back(atoi(listString[i + 2].c_str()));
-				else
+				}
+				else {
+					equName.push_back("ERROR");
 					equConst.push_back(-1);
+				}
 				return -1;
 			}
 			else if (((spaceCode.size() == 0) || (!strInVec(listString[i], spaceCode))) && \

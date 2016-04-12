@@ -224,6 +224,12 @@ public:
 			cout << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[sizeTable+i] << "\t\t" << list.tableSegment[1] << "\n";
 			fileRecord << setfill('0') << setw(4) << hex << uppercase << list.spaceNum[sizeTable+i] << "\t\t" << list.tableSegment[1] << "\n";
 		}
+		cout << endl;
+		sizeTable = list.equConst.size();
+		for (int i = 0; i < sizeTable; ++i) {
+			cout << "  " << list.equName[i] << "\t\tNUMBER\t\t" << setfill('0') << setw(4) << hex << uppercase << list.equConst[i] << "\n";
+			fileRecord << "  " << list.equName[i] << "\t\tNUMBER\t\t" << setfill('0') << setw(4) << hex << uppercase << list.equConst[i] << "\n";
+		}
 	}
 
 
