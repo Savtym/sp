@@ -1,0 +1,4 @@
+﻿  main.cpp
+c:\users\cvest\onedrive\документы\visual studio 2015\projects\comlpile\comlpile\grammar.h(97): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\cvest\onedrive\документы\visual studio 2015\projects\comlpile\comlpile\grammar.h(102): warning C4018: <: несоответствие типов со знаком и без знака
+  comlpile.vcxproj -> C:\Users\cvest\OneDrive\Документы\Visual Studio 2015\Projects\comlpile\Debug\comlpile.exe
